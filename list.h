@@ -75,7 +75,6 @@ class list {
        public:
         friend class list<T>;
         list_iterator() = default;
-        list_iterator(node_base* p) : ptr(p) {}
         list_iterator(list_iterator<T> const& other) : ptr(other.ptr) {}
         list_iterator& operator++() {
             ptr = ptr->next;
@@ -107,6 +106,7 @@ class list {
         }
 
        private:
+        list_iterator(node_base* p) : ptr(p) {}
         node_base* ptr;
     };
 
@@ -127,7 +127,9 @@ class list {
     }
 
     reverse_iterator rbegin() { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const {
+        return const_reverse_iterator(end());
+    }
 
     reverse_iterator rend() { return reverse_iterator(begin()); }
     const_reverse_iterator rend() const {

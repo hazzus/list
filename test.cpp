@@ -369,9 +369,8 @@ TEST(iterators, insert_push) {
 }
 
 void f() {
-    my::list<int>::iterator i1;
-    my::list<int>::const_iterator i2;
-    i1 == i2;
+    my::list<int> const a;
+    a.rbegin();
 }
 
 TEST(iterators, insert_push_pop) {
