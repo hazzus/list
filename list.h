@@ -13,7 +13,6 @@ class list {
         node_base* next;
         node_base* prev;
         node_base() : next(nullptr), prev(nullptr) {}
-        node_base(node_base* p) : next(nullptr), prev(p) {}
         node_base(node_base* p, node_base* n) : next(n), prev(p) {}
         virtual ~node_base() = default;
     };
