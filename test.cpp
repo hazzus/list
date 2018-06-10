@@ -184,6 +184,17 @@ TEST(correctness, splice) {
     }
 }
 
+TEST(cirrectness, slice_only_and_empty) {
+    my::list<int> x{1, 2}, y;
+    y.splice(y.begin(), x, ++x.begin(), x.end());
+    std::vector<int> a{2};
+    assert_range_equality(y.begin(), y.end(), a.begin(), a.end());
+    my::list<int> r{};
+    y.clear();
+    y.splice(y.begin(), r, r.begin(), r.end());
+    assert_range_equality(y.begin(), y.end(), ++a.begin(), a.end());
+}
+
 TEST(correctness, slice_all) {
     my::list<int> l1, l2;
     l1.push_back(1);
@@ -357,6 +368,12 @@ TEST(iterators, insert_push) {
     ASSERT_EQ(2, *++++v.begin());
 }
 
+void f() {
+    my::list<int>::iterator i1;
+    my::list<int>::const_iterator i2;
+    i1 == i2;
+}
+
 TEST(iterators, insert_push_pop) {
     my::list<int> v;
     v.insert(v.end(), 2);
@@ -377,6 +394,23 @@ TEST(iterators, const_iterator) {
     my::list<int>::const_iterator it(x.begin());
     it++;
     ASSERT_EQ(*it, 2);
+}
+
+TEST(iterators, const_iterator_cast) {
+    my::list<int> x{1, 2, 3, 4, 5};
+    my::list<int>::iterator z(x.begin());
+    my::list<int>::const_iterator n(z);
+    //(*n) = 4;
+}
+
+TEST(iterators, const_iterator_equality) {
+    my::list<int> x{1, 2, 3, 4, 5};
+    my::list<int>::iterator i(x.begin());
+    my::list<int>::const_iterator j(x.begin());
+    EXPECT_TRUE(i == j && j == i);
+    EXPECT_FALSE(++i == j || j == ++i);
+    i == i;
+    j == j;
 }
 
 /*

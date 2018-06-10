@@ -1,10 +1,6 @@
 #ifndef MY_LIST
 #define MY_LIST
 
-// exception safe
-// не обязательно t DefaultConstructable
-// default constructor - nothrow
-
 #include <cassert>
 #include <iterator>
 
@@ -22,7 +18,7 @@ class list {
         virtual ~node_base() = default;
     };
 
-    struct node : node_base {
+    struct node : virtual node_base {
         T value;
 
         node() = delete;
@@ -32,15 +28,15 @@ class list {
     };
 
     node_base loop;
-    node_base* loop_ptr = &loop;
+    node_base* fake = &loop;
 
    public:
-    list() noexcept { loop_ptr->next = loop_ptr->prev = loop_ptr; }
+    list() noexcept { fake->next = fake->prev = fake; }
 
     list(list<T> const& other) : list() {
-        if (other.loop_ptr != nullptr) {
-            node_base* cur = other.loop_ptr->next;
-            while (cur != other.loop_ptr) {
+        if (other.fake != nullptr) {
+            node_base* cur = other.fake->next;
+            while (cur != other.fake) {
                 push_back(dynamic_cast<node*>(cur)->value);
                 cur = cur->next;
             }
@@ -69,7 +65,7 @@ class list {
     using iterator = list_iterator<T>;
     using const_iterator = list_iterator<T const>;
     using reverse_iterator = std::reverse_iterator<list_iterator<T>>;
-    using reverse_const_iterator =
+    using const_reverse_iterator =
         std::reverse_iterator<list_iterator<T const>>;
 
    private:
@@ -100,10 +96,13 @@ class list {
             return old;
         }
         U& operator*() { return dynamic_cast<node*>(ptr)->value; }
-        bool operator==(list_iterator<U> const& other) const {
+
+        template <typename Z>
+        bool operator==(list_iterator<Z> const& other) const {
             return ptr == other.ptr;
         }
-        bool operator!=(list_iterator<U> const& other) const {
+        template <typename Z>
+        bool operator!=(list_iterator<Z> const& other) const {
             return ptr != other.ptr;
         }
 
@@ -113,83 +112,90 @@ class list {
 
    public:
     iterator begin() {
-        return iterator((loop_ptr == nullptr) ? nullptr : loop_ptr->next);
+        return iterator((fake == nullptr) ? nullptr : fake->next);
     }
     const_iterator begin() const {
-        return iterator((loop_ptr == nullptr) ? nullptr : loop_ptr->next);
+        return iterator((fake == nullptr) ? nullptr : fake->next);
     }
 
-    iterator end() { return iterator(loop_ptr); }
-    const_iterator end() const { return const_iterator(loop_ptr); }
+    iterator end() { return iterator(fake); }
+    const_iterator end() const { return const_iterator(fake); }
 
-    const_iterator cend() const { return const_iterator(loop_ptr); }
+    const_iterator cend() const { return const_iterator(fake); }
     const_iterator cbegin() const {
-        return iterator((loop_ptr == nullptr) ? nullptr : loop_ptr->next);
+        return const_iterator((fake == nullptr) ? nullptr : fake->next);
     }
 
     reverse_iterator rbegin() { return reverse_iterator(end()); }
-    reverse_const_iterator rbegin() const { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const { return reverse_iterator(end()); }
 
     reverse_iterator rend() { return reverse_iterator(begin()); }
-    reverse_const_iterator rend() const {
-        return reverse_const_iterator(begin());
+    const_reverse_iterator rend() const {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const {
+        return const_reverse_iterator(begin());
+    }
+    const_reverse_iterator crbegin() const {
+        return const_reverse_iterator(end());
     }
 
     void push_back(T const& value) {
-        node_base* last = loop_ptr->prev;
-        loop_ptr->prev = new node(value, last, loop_ptr);
-        last->next = loop_ptr->prev;
+        node_base* last = fake->prev;
+        fake->prev = new node(value, last, fake);
+        last->next = fake->prev;
     }
 
     void pop_back() {
-        assert(loop_ptr != loop_ptr->next);
-        node_base* to_del = loop_ptr->prev;
-        loop_ptr->prev->prev->next = loop_ptr;
-        loop_ptr->prev = loop_ptr->prev->prev;
+        assert(fake != fake->next);
+        node_base* to_del = fake->prev;
+        fake->prev->prev->next = fake;
+        fake->prev = fake->prev->prev;
         delete to_del;
     }
 
     T& back() {
-        assert(loop_ptr != loop_ptr->next);
-        return dynamic_cast<node*>(loop_ptr->prev)->value;
+        assert(fake != fake->next);
+        return dynamic_cast<node*>(fake->prev)->value;
     }
     T const& back() const {
-        assert(loop_ptr != loop_ptr->next);
-        return dynamic_cast<node*>(loop_ptr->prev)->value;
+        assert(fake != fake->next);
+        return dynamic_cast<node*>(fake->prev)->value;
     }
 
     void push_front(T const& value) {
-        node_base* first = loop_ptr->next;
-        loop_ptr->next = new node(value, loop_ptr, first);
-        first->prev = loop_ptr->next;
+        node_base* first = fake->next;
+        fake->next = new node(value, fake, first);
+        first->prev = fake->next;
     }
     void pop_front() {
-        assert(loop_ptr != loop_ptr->next);
-        node_base* to_del = loop_ptr->next;
-        loop_ptr->next->next->prev = loop_ptr;
-        loop_ptr->next = loop_ptr->next->next;
+        assert(fake != fake->next);
+        node_base* to_del = fake->next;
+        fake->next->next->prev = fake;
+        fake->next = fake->next->next;
         delete to_del;
     }
 
     T& front() {
-        assert(loop_ptr != loop_ptr->next);
-        return dynamic_cast<node*>(loop_ptr->next)->value;
+        assert(fake != fake->next);
+        return dynamic_cast<node*>(fake->next)->value;
     }
     T const& front() const {
-        assert(loop_ptr != loop_ptr->next);
-        return dynamic_cast<node*>(loop_ptr->next)->value;
+        assert(fake != fake->next);
+        return dynamic_cast<node*>(fake->next)->value;
     }
 
-    bool empty() const { return loop_ptr == loop_ptr->next; }
+    bool empty() const { return fake == fake->next; }
 
     void clear() {
-        node_base* cur = loop_ptr->next;
-        while (cur != loop_ptr) {
+        node_base* cur = fake->next;
+        while (cur != fake) {
             node_base* to_del = cur;
             cur = cur->next;
             delete to_del;
         }
-        loop_ptr->next = loop_ptr->prev = loop_ptr;
+        fake->next = fake->prev = fake;
     }
 
     iterator insert(const_iterator pos, T const& value) {
@@ -200,7 +206,7 @@ class list {
     }
 
     iterator erase(const_iterator pos) {
-        assert(loop_ptr != loop_ptr->next);
+        assert(fake != fake->next);
         pos.ptr->prev->next = pos.ptr->next;
         pos.ptr->next->prev = pos.ptr->prev;
         iterator to_ret(pos.ptr->next);
@@ -248,17 +254,17 @@ class list {
 
 template <typename U>
 void swap(list<U>& a, list<U>& b) noexcept {
-    auto a_left = a.loop_ptr->prev;
-    auto a_right = a.loop_ptr->next;
+    auto a_left = a.fake->prev;
+    auto a_right = a.fake->next;
 
-    auto b_left = b.loop_ptr->prev;
-    auto b_right = b.loop_ptr->next;
+    auto b_left = b.fake->prev;
+    auto b_right = b.fake->next;
 
-    a_left->next = b.loop_ptr;
-    a_right->prev = b.loop_ptr;
+    a_left->next = b.fake;
+    a_right->prev = b.fake;
 
-    b_left->next = a.loop_ptr;
-    b_right->prev = a.loop_ptr;
+    b_left->next = a.fake;
+    b_right->prev = a.fake;
 
     std::swap(a.loop, b.loop);
 }
