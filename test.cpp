@@ -249,6 +249,15 @@ TEST(correctness, front) {
     EXPECT_EQ(true, l.empty());
 }
 
+TEST(correctness, swap) {
+    my::list<int> o{1, 2, 3, 4}, t{1, 2, 3};
+    if (true) {
+        my::list<int> x{1, 2, 3};
+        my::swap(o, x);
+    }
+    assert_range_equality(o.begin(), o.end(), t.begin(), t.end());
+}
+
 TEST(basic, push_pop_back) {
     my::list<int> v;
     v.push_back(1);
