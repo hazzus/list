@@ -92,7 +92,9 @@ class list {
             --*this;
             return old;
         }
-        U& operator*() { return static_cast<node*>(ptr)->value; }
+        U& operator*() const { return static_cast<node*>(ptr)->value; }
+
+        U* operator->() const { return &static_cast<node*>(ptr)->value; }
 
         template <typename Z>
         bool operator==(list_iterator<Z> const& other) const {
@@ -156,8 +158,8 @@ class list {
         return static_cast<node*>(loop.prev)->value;
     }
     T const& back() const {
-        assert(&loop != &loop->next);
-        return static_cast<node*>(&loop->prev)->value;
+        assert(&loop != loop.next);
+        return static_cast<node*>(loop.prev)->value;
     }
 
     void push_front(T const& value) {
@@ -178,8 +180,8 @@ class list {
         return static_cast<node*>(loop.next)->value;
     }
     T const& front() const {
-        assert(loop != &loop->next);
-        return static_cast<node*>(&loop->next)->value;
+        assert(&loop != loop.next);
+        return static_cast<node*>(loop.next)->value;
     }
 
     bool empty() const { return &loop == loop.next; }
@@ -227,7 +229,7 @@ class list {
             cur = cur->next;
             delete to_del;
         }
-        return iterator(n.next);
+        return iterator(end.ptr);
     }
 
     void splice(const_iterator pos, list<T>& other, const_iterator begin,
